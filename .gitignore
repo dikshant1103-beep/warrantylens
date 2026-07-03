@@ -25,7 +25,7 @@ yarn-error.log*
 # Data / models / media (do NOT commit datasets or weights)
 data/
 datasets/
-models/
+/models/
 *.pt
 *.onnx
 *.gguf
