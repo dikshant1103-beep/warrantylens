@@ -1,0 +1,33 @@
+{
+  "name": "warrantylens-desktop",
+  "version": "0.1.0",
+  "description": "WarrantyLens desktop app (Electron shell over the local engine)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --linux AppImage"
+  },
+  "devDependencies": {
+    "electron": "^31.7.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "io.warrantylens.desktop",
+    "productName": "WarrantyLens",
+    "files": [
+      "main.js",
+      "loading.html",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development",
+      "icon": "build/icon.png"
+    }
+  }
+}

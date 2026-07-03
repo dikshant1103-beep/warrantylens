@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Env / secrets
+.env
+*.env
+!*.env.example
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-error.log*
+
+# Data / models / media (do NOT commit datasets or weights)
+data/
+datasets/
+models/
+*.pt
+*.onnx
+*.gguf
+*.joblib
+media/
+uploads/
+
+# Demo images (CarDD-derived — licensing; keep README only)
+demo_images/*.jpg
+demo_images/*.png
+
+# Desktop packaging output
+desktop/dist/
+*.AppImage
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# build info
+frontend/tsconfig.tsbuildinfo

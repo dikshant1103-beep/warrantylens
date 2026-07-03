@@ -1,0 +1,33 @@
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# ffmpeg/ffprobe for media; libgl/libglib for opencv; tesseract for OCR
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev ffmpeg libgl1 libglib2.0-0 \
+    tesseract-ocr \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml ./
+RUN pip install --upgrade pip && pip install -e ".[dev]"
+
+# CPU-only torch (no GPU in container), then the AI stage libraries:
+#   ultralytics  -> YOLOv11 detection
+#   faster-whisper -> ASR
+#   pytesseract  -> OCR (Tesseract; system binary installed via apt above)
+#   FlagEmbedding -> BGE-M3 embeddings
+#   qdrant-client -> vector store
+# (VLM uses Ollama over HTTP — no heavy lib needed.)
+RUN pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision \
+    && pip install ultralytics faster-whisper qdrant-client FlagEmbedding pytesseract
+
+COPY . .
+
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
+
+CMD ["celery", "-A", "app.workers.celery_app", "worker", "-Q", "cpu", "--loglevel=info", "--concurrency=2"]
