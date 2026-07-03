@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -42,6 +42,7 @@ class BatteryReport(UUIDMixin, TenantMixin, TimestampMixin, Base):
     abuse_indicators: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     payload: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
 
-    # Advisory leaning derived from battery signals: supports_warranty | inconclusive | suggests_misuse
+    # Advisory leaning derived from battery signals:
+    # supports_warranty | inconclusive | suggests_misuse
     warranty_leaning: Mapped[str | None] = mapped_column(String(30), nullable=True)
     assessment_note: Mapped[str | None] = mapped_column(Text, nullable=True)

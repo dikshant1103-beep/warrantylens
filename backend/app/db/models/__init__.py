@@ -15,10 +15,10 @@ from app.db.models.enums import (
     MediaKind,
     MediaStatus,
     OcrFieldType,
+    PartEventType,
     ReviewDecision,
     UserRole,
 )
-from app.db.models.enums import PartEventType
 from app.db.models.inspection_template import InspectionTemplate
 from app.db.models.media import Frame, MediaAsset
 from app.db.models.parts import PartEvent, VehiclePart
