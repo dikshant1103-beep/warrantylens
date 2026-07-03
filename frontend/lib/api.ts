@@ -1,4 +1,5 @@
 import type {
+  BatteryReport,
   Claim,
   ClaimList,
   ClaimStatusResponse,
@@ -11,11 +12,16 @@ import type {
   LoginResponse,
   MediaKind,
   OcrResult,
+  PartEvent,
   Report,
   Review,
   Risk,
   RiskDistribution,
+  TelemetryAssessment,
   Transcript,
+  VehicleListItem,
+  VehiclePassport,
+  Verdict,
   UploadSlot,
   User,
   VlmAnalysis,
@@ -135,10 +141,29 @@ export const api = {
   getVlm: (id: string) => request<VlmAnalysis[]>(`/claims/${id}/vlm`),
   getCompleteness: (id: string) => request<Completeness | null>(`/claims/${id}/completeness`),
   getRisk: (id: string) => request<Risk | null>(`/claims/${id}/risk`),
+  getVerdict: (id: string) => request<Verdict>(`/claims/${id}/verdict`),
   getReport: (id: string) => request<Report | null>(`/claims/${id}/report`),
   regenerateReport: (id: string) =>
     request<Report>(`/claims/${id}/report/regenerate`, { method: "POST" }),
   getReviews: (id: string) => request<Review[]>(`/claims/${id}/reviews`),
+  getPartEvents: (id: string) => request<PartEvent[]>(`/claims/${id}/part-events`),
+  getBatteryReport: (id: string) =>
+    request<BatteryReport | null>(`/claims/${id}/battery-report`),
+  attachBatteryReport: (id: string, bhr: unknown) =>
+    request<BatteryReport>(`/claims/${id}/battery-report`, {
+      method: "POST",
+      body: JSON.stringify(bhr),
+    }),
+  getTelemetry: (vin: string) =>
+    request<TelemetryAssessment>(`/vehicles/${encodeURIComponent(vin)}/telemetry`),
+  simulateTelemetry: (vin: string, profile: string, days = 180) =>
+    request<{ vin: string; profile: string; snapshots: number }>(
+      `/vehicles/${encodeURIComponent(vin)}/simulate-telemetry?profile=${profile}&days=${days}`,
+      { method: "POST" },
+    ),
+  listVehicles: () => request<VehicleListItem[]>("/vehicles"),
+  getPassport: (vin: string) =>
+    request<VehiclePassport>(`/vehicles/${encodeURIComponent(vin)}/passport`),
   submitReview: (id: string, decision: Decision, notes?: string) =>
     request<Review>(`/claims/${id}/review`, {
       method: "POST",

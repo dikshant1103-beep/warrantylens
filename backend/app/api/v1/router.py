@@ -6,7 +6,9 @@ from app.api.v1.endpoints import (
     claims,
     dashboard,
     health,
+    parts,
     users,
+    vehicles,
 )
 
 api_router = APIRouter()
@@ -15,4 +17,6 @@ api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(catalog.router, tags=["catalog"])
 api_router.include_router(claims.router, prefix="/claims", tags=["claims"])
+api_router.include_router(parts.router, tags=["parts"])
+api_router.include_router(vehicles.router)
 api_router.include_router(dashboard.router)

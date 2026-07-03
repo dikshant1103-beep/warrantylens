@@ -49,3 +49,11 @@ desktop/dist/
 
 # build info
 frontend/tsconfig.tsbuildinfo
+
+# credentials (never commit)
+.kaggle/
+kaggle.json
+.secrets
+
+# marketing/screenshot assets
+linkedin_assets/

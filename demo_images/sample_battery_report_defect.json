@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "source": "BatteryOS",
+  "generated_at": "2026-06-15T11:05:00Z",
+  "vehicle": { "vin": "5YJ3E1EA7KF000316", "pack_id": "PK-5510" },
+  "chemistry": "NMC",
+  "soh_percent": 61.2,
+  "rul": { "cycles": 210, "ci_low": 160, "ci_high": 280, "confidence": 0.86 },
+  "capacity_fade_percent": 38.8,
+  "charging": { "dc_fast_charge_pct": 18, "over_temp_charge_events": 0, "avg_charge_temp_c": 27 },
+  "faults": [
+    { "code": "P0A7F", "desc": "Battery energy control module deterioration", "severity": "high", "ts": "2026-05-20T09:00:00Z" }
+  ],
+  "abuse_indicators": []
+}

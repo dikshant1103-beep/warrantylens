@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "source": "BatteryOS",
+  "generated_at": "2026-06-15T10:30:00Z",
+  "vehicle": { "vin": "1HGBH41JXMN109186", "pack_id": "PK-2231" },
+  "chemistry": "NMC",
+  "soh_percent": 78.4,
+  "rul": { "cycles": 640, "ci_low": 520, "ci_high": 770, "confidence": 0.82 },
+  "capacity_fade_percent": 21.6,
+  "charging": { "dc_fast_charge_pct": 71, "over_temp_charge_events": 23, "avg_charge_temp_c": 44 },
+  "faults": [
+    { "code": "P0A80", "desc": "Replace hybrid battery pack", "severity": "high", "ts": "2026-05-02T08:12:00Z" },
+    { "code": "P0AC4", "desc": "Battery temperature sensor high", "severity": "medium", "ts": "2026-04-18T17:40:00Z" }
+  ],
+  "abuse_indicators": ["frequent_hot_fast_charge", "over_temp_charge", "deep_discharge"]
+}

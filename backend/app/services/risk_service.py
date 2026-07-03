@@ -103,6 +103,36 @@ async def compute(
         deficit = (100.0 - float(completeness.score)) / 100.0
         add("incomplete_inspection", deficit, [str(completeness.id)], "completeness")
 
+    # 5) Serial-number lifecycle (anti swap-and-sell). Tenant-tuned weights
+    # override the defaults baked into the serial factors.
+    from app.services import serial_service
+
+    for sf in await serial_service.run_checks(session, claim):
+        weight, severity = weights.get(sf["indicator"], (sf["weight"], sf["severity"]))
+        sf["weight"], sf["severity"] = weight, severity
+        sf["contribution"] = round(weight * min(sf["confidence"], 1.0) * _SCALE, 2)
+        factors.append(sf)
+
+    # 6) Battery health (from an attached BatteryOS report, if any).
+    from app.services import battery_service
+
+    report = await battery_service.get_for_claim(session, claim.id)
+    if report is not None:
+        for bf in battery_service.risk_factors(report):
+            weight, severity = weights.get(bf["indicator"], (bf["weight"], bf["severity"]))
+            bf["weight"], bf["severity"] = weight, severity
+            bf["contribution"] = round(weight * min(bf["confidence"], 1.0) * _SCALE, 2)
+            factors.append(bf)
+
+    # 7) Non-battery telemetry history (motor/controller/usage/safety), by VIN.
+    from app.services import telemetry_service
+
+    for tf in await telemetry_service.risk_factors_for_claim(session, claim.tenant_id, claim.vin):
+        weight, severity = weights.get(tf["indicator"], (tf["weight"], tf["severity"]))
+        tf["weight"], tf["severity"] = weight, severity
+        tf["contribution"] = round(weight * min(tf["confidence"], 1.0) * _SCALE, 2)
+        factors.append(tf)
+
     raw = sum(f["contribution"] for f in factors)
     score = round(min(100.0, raw), 2)
     factors.sort(key=lambda f: f["contribution"], reverse=True)

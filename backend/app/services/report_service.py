@@ -65,6 +65,10 @@ async def generate(session: AsyncSession, claim: Claim) -> Report:
         )
     )
 
+    from app.services import verdict_service
+
+    verdict = await verdict_service.compute(session, claim)
+
     payload = {
         "header": {
             "claim_number": claim.claim_number,
@@ -72,6 +76,7 @@ async def generate(session: AsyncSession, claim: Claim) -> Report:
             "status": claim.status.value,
             "reason": claim.claim_reason,
         },
+        "verdict": verdict,
         "scores": {
             "completeness": float(completeness.score) if completeness else None,
             "risk": float(risk.score) if risk else None,
@@ -172,6 +177,12 @@ def _render_html(claim: Claim, payload: dict, keyframes: list[Frame]) -> str:
             pass
 
     sc = payload["scores"]
+    v = payload.get("verdict", {})
+    vlabel = str(v.get("verdict", "")).replace("_", " ")
+    vbg = {
+        "likely_manufacturing_defect": "#dcfce7;color:#166534",
+        "likely_misuse_or_external": "#fee2e2;color:#991b1b",
+    }.get(v.get("verdict"), "#f1f5f9;color:#334155")
     return f"""<!doctype html><html><head><meta charset='utf-8'>
 <style>
  body{{font-family:Arial,sans-serif;color:#0f172a;margin:32px}}
@@ -179,11 +190,14 @@ def _render_html(claim: Claim, payload: dict, keyframes: list[Frame]) -> str:
  table{{border-collapse:collapse;width:100%;margin:8px 0}}
  td,th{{border:1px solid #e2e8f0;padding:6px;text-align:left;font-size:13px}}
  .badge{{display:inline-block;padding:2px 8px;border-radius:9999px;background:#e0f2fe;color:#0369a1}}
+ .verdict{{padding:12px;border-radius:8px;margin:12px 0;background:{vbg}}}
  .disc{{background:#fffbeb;border:1px solid #fde68a;padding:10px;border-radius:8px;font-size:12px;color:#92400e}}
 </style></head><body>
  <h1>WarrantyLens Inspection Report</h1>
  <p class='muted'>Claim {e(claim.claim_number)} · VIN {e(claim.vin or '—')} ·
    Completeness {sc['completeness']}/100 · <span class='badge'>Risk {sc['risk']}/100</span></p>
+ <div class='verdict'><b>Advisory verdict: {e(vlabel.title())}</b>
+   (confidence {v.get('confidence', 0)})<br>{e(str(v.get('rationale', '')))}</div>
  <h3>Risk panel (advisory)</h3>
  <p>{e(str(payload['risk_panel']['rationale'] or ''))}</p>
  <ul>{factors}</ul>

@@ -12,13 +12,16 @@ class Base(DeclarativeBase):
 from app.db.models import (  # noqa: E402,F401
     ai,
     audit_log,
+    battery,
     claim,
     component,
     inspection_template,
     media,
+    parts,
     processing_job,
     refresh_token,
     scoring,
     tenant,
     user,
+    vehicle,
 )

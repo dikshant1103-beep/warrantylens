@@ -60,6 +60,11 @@ ignore = ["B008", "UP042"]  # B008: FastAPI Depends() defaults; UP042: str+Enum 
 "app/ml/prompts/*" = ["E501"]          # prompt templates contain long literal lines
 "app/services/report_service.py" = ["E501"]  # inline HTML/CSS template lines
 "app/scripts/smoke_test.py" = ["E501"]       # readable f-string status lines
+"app/scripts/smoke_full.py" = ["E501"]       # readable f-string status lines
+"app/scripts/verify_pipeline.py" = ["E501"]  # readable f-string status lines
+"app/services/telemetry_service.py" = ["E501"]  # readable long signatures/notes
+"app/ml/telemetry_sim.py" = ["E501"]            # readable long comment lines
+"app/services/verdict_service.py" = ["E501"]    # readable verdict label strings
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

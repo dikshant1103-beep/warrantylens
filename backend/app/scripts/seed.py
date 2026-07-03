@@ -52,6 +52,23 @@ INDICATORS = [
     ("opened_enclosure", "Opened enclosure", 3.0, "high"),
     ("non_standard_mod", "Non-standard modification", 2.5, "high"),
     ("incomplete_inspection", "Incomplete inspection", 1.0, "medium"),
+    # Serial-number lifecycle (anti swap-and-sell)
+    ("serial_not_registered", "Serial not registered to any vehicle", 3.0, "high"),
+    ("serial_not_on_vin", "Serial belongs to a different VIN", 3.5, "high"),
+    ("serial_reused", "Serial already claimed/removed before", 3.5, "high"),
+    ("serial_no_photo_proof", "Claimed serial not visible in photos", 2.0, "high"),
+    ("replacement_equals_removed", "Replacement serial equals removed", 3.0, "high"),
+    ("replacement_serial_duplicate", "Replacement serial active elsewhere", 2.5, "high"),
+    ("removed_serial_missing", "No serial recorded for claimed part", 1.0, "medium"),
+]
+
+# Demo: parts registered to demo VINs (so serial checks have something to verify).
+DEMO_PARTS = [
+    ("1HGBH41JXMN109186", "charging_port", "CP-1HG-0098"),
+    ("1HGBH41JXMN109186", "motor_housing", "MH-1HG-5521"),
+    ("1HGBH41JXMN109186", "controller_housing", "CH-1HG-7732"),
+    ("5YJ3E1EA7KF000316", "charging_port", "CP-5YJ-3310"),
+    ("5YJ3E1EA7KF000316", "battery_enclosure", "BE-5YJ-9001"),
 ]
 
 TEMPLATES = [
@@ -154,6 +171,36 @@ async def seed() -> None:
                         tenant_id=tenant.id, name=name,
                         required_views=views, required_evidence=evidence,
                     )
+                )
+
+        # Demo vehicle-parts registry
+        from app.db.models.parts import VehiclePart
+
+        existing_serials = set(
+            await session.scalars(
+                select(VehiclePart.serial).where(VehiclePart.tenant_id == tenant.id)
+            )
+        )
+        for vin, comp_code, serial in DEMO_PARTS:
+            if serial not in existing_serials:
+                session.add(
+                    VehiclePart(
+                        tenant_id=tenant.id, vin=vin, component_code=comp_code,
+                        serial=serial, is_active=True,
+                    )
+                )
+
+        # Demo telemetry histories (different ground-truth profiles per VIN)
+        from app.services import telemetry_service
+
+        demo_telemetry = [
+            ("1HGBH41JXMN109186", "abuse"),
+            ("5YJ3E1EA7KF000316", "latent_defect"),
+        ]
+        for vin, profile in demo_telemetry:
+            if not await telemetry_service.has_telemetry(session, tenant.id, vin):
+                await telemetry_service.simulate(
+                    session, tenant.id, vin, profile=profile, days=180
                 )
 
         await session.commit()

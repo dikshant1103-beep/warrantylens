@@ -16,6 +16,7 @@ from app.schemas.ai import (
     TranscriptRead,
     VlmAnalysisRead,
 )
+from app.schemas.battery import BatteryHealthReport, BatteryReportRead
 from app.schemas.claim import (
     ClaimAssign,
     ClaimCreate,
@@ -38,10 +39,13 @@ from app.schemas.review import ReviewCreate, ReviewRead
 from app.schemas.scoring import CompletenessRead, ReportRead, RiskRead
 from app.services import (
     audit_service,
+    battery_service,
     claim_service,
     evidence_service,
     report_service,
     review_service,
+    risk_service,
+    verdict_service,
 )
 
 router = APIRouter()
@@ -270,6 +274,49 @@ async def get_vlm(
     return list(rows)
 
 
+# --- Battery Health Report (BatteryOS integration) ---------------------------
+@router.post(
+    "/{claim_id}/battery-report",
+    response_model=BatteryReportRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def attach_battery_report(
+    claim_id: uuid.UUID,
+    body: BatteryHealthReport,
+    request: Request,
+    current: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> BatteryReportRead:
+    claim = await claim_service.get_claim(db, current.tenant_id, claim_id)
+    report = battery_service.ingest(claim, body)
+    db.add(report)
+    await db.flush()
+    await audit_service.record(
+        db, action="claim.battery_report", entity_type="claim", entity_id=claim.id,
+        actor_user_id=current.id, tenant_id=current.tenant_id,
+        after={"warranty_leaning": report.warranty_leaning}, ip=client_ip(request),
+    )
+    # Refresh scoring + report so battery signals flow into the risk assessment.
+    completeness = await db.scalar(
+        select(CompletenessCheck).where(CompletenessCheck.claim_id == claim.id)
+        .order_by(CompletenessCheck.created_at.desc())
+    )
+    await risk_service.compute(db, claim, completeness)
+    await report_service.generate(db, claim)
+    await db.commit()
+    return BatteryReportRead.model_validate(report)
+
+
+@router.get("/{claim_id}/battery-report", response_model=BatteryReportRead | None)
+async def get_battery_report(
+    claim_id: uuid.UUID,
+    current: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    claim = await claim_service.get_claim(db, current.tenant_id, claim_id)
+    return await battery_service.get_for_claim(db, claim.id)
+
+
 # --- Scoring + report (Sprint 4) ---------------------------------------------
 @router.get("/{claim_id}/completeness", response_model=CompletenessRead | None)
 async def get_completeness(
@@ -297,6 +344,16 @@ async def get_risk(
         .where(RiskAssessment.claim_id == claim.id)
         .order_by(RiskAssessment.created_at.desc())
     )
+
+
+@router.get("/{claim_id}/verdict")
+async def get_verdict(
+    claim_id: uuid.UUID,
+    current: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    claim = await claim_service.get_claim(db, current.tenant_id, claim_id)
+    return await verdict_service.compute(db, claim)
 
 
 @router.get("/{claim_id}/report", response_model=ReportRead | None)

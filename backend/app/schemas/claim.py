@@ -19,6 +19,8 @@ class ClaimCreate(BaseModel):
     template_id: uuid.UUID | None = None
     claim_reason: str | None = None
     mechanic_narrative: str | None = None
+    removed_serial: str | None = Field(default=None, max_length=100)
+    replacement_serial: str | None = Field(default=None, max_length=100)
 
     _vin = field_validator("vin")(_normalize_vin)
 
@@ -29,6 +31,8 @@ class ClaimUpdate(BaseModel):
     template_id: uuid.UUID | None = None
     claim_reason: str | None = None
     mechanic_narrative: str | None = None
+    removed_serial: str | None = Field(default=None, max_length=100)
+    replacement_serial: str | None = Field(default=None, max_length=100)
 
     _vin = field_validator("vin")(_normalize_vin)
 
@@ -48,6 +52,8 @@ class ClaimRead(BaseModel):
     template_id: uuid.UUID | None
     claim_reason: str | None
     mechanic_narrative: str | None
+    removed_serial: str | None
+    replacement_serial: str | None
     created_by_user_id: uuid.UUID
     assigned_reviewer_id: uuid.UUID | None
     completeness_score: float | None

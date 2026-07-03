@@ -37,6 +37,8 @@ export interface Claim {
   template_id: string | null;
   claim_reason: string | null;
   mechanic_narrative: string | null;
+  removed_serial: string | null;
+  replacement_serial: string | null;
   created_by_user_id: string;
   assigned_reviewer_id: string | null;
   completeness_score: number | null;
@@ -161,6 +163,7 @@ export interface RiskFactor {
   contribution: number;
   evidence_refs: string[];
   source: string;
+  note?: string;
 }
 
 export interface Risk {
@@ -188,6 +191,88 @@ export interface Review {
   decision: Decision;
   notes: string | null;
   created_at: string;
+}
+
+export interface PartEvent {
+  id: string;
+  claim_id: string | null;
+  vin: string | null;
+  serial: string | null;
+  component_code: string | null;
+  event_type: string;
+  note: string | null;
+  created_at: string;
+}
+
+export interface BatteryReport {
+  id: string;
+  source: string;
+  vin: string | null;
+  pack_id: string | null;
+  chemistry: string | null;
+  soh_percent: number | null;
+  rul_cycles: number | null;
+  rul_ci_low: number | null;
+  rul_ci_high: number | null;
+  capacity_fade_percent: number | null;
+  charging: Record<string, unknown> | null;
+  faults: { code?: string; desc?: string; severity?: string; ts?: string }[] | null;
+  abuse_indicators: string[] | null;
+  warranty_leaning: "supports_warranty" | "inconclusive" | "suggests_misuse" | null;
+  assessment_note: string | null;
+}
+
+export interface VehicleListItem {
+  vin: string;
+  make: string | null;
+  model: string | null;
+  profile: string | null;
+}
+
+export interface VehiclePassport {
+  vin: string;
+  vehicle: { make: string | null; model: string | null; profile: string | null; manufactured_at: string | null } | null;
+  parts: { serial: string; component_code: string | null; is_active: boolean }[];
+  claims: { id: string; claim_number: string; status: ClaimStatus; risk_score: number | null; created_at: string }[];
+  part_events: { serial: string | null; event_type: string; created_at: string }[];
+  battery_reports: { id: string; soh_percent: number | null; rul_cycles: number | null; warranty_leaning: string | null; created_at: string }[];
+  telemetry: TelemetryAssessment;
+}
+
+export interface Verdict {
+  verdict:
+    | "likely_manufacturing_defect"
+    | "likely_misuse_or_external"
+    | "inconclusive"
+    | "insufficient_data";
+  confidence: number;
+  score: number;
+  sources: { source: string; leaning: string; weight: number; contribution: number; note: string | null }[];
+  integrity_concern: boolean;
+  integrity_notes: string[];
+  rationale: string;
+  disclaimer: string;
+}
+
+export interface TelemetryAssessment {
+  vin: string;
+  profile: string | null;
+  summary: {
+    days?: number;
+    odometer_km?: number;
+    motor_overtemp_days?: number;
+    controller_overtemp_days?: number;
+    harsh_events?: number;
+    overcurrent_events?: number;
+    water_ingress_events?: number;
+    impact_events?: number;
+    motor_temp_slope?: number;
+    controller_temp_slope?: number;
+  };
+  factors: RiskFactor[];
+  leaning: string;
+  note: string;
+  series: { day: string; motor: number | null; controller: number | null }[];
 }
 
 export interface DashboardOverview {
